@@ -6,9 +6,10 @@ layout: default
 
   {{ content }}
 
-  <h1 class="page-heading">Posts</h1>
+  <h1 class="page-heading">Articles</h1>
   
   <ul class="post-list">
+  {% comment %}
     {% for post in site.posts %}
       <li>
         {% assign date_format = site.minima.date_format | default: "%b %-d, %Y" %}
@@ -19,6 +20,17 @@ layout: default
         </h2>
       </li>
     {% endfor %}
+  {% endcomment %}
+
+  {% for page in site.pages %}
+    {% if page.article == true %}
+      <li>
+        <h2>
+          <a class="post-link" href="{{ page.url | relative_url }}">{{ page.title | escape }}</a>
+        </h2>
+      </li>
+    {% endif %}  
+  {% endfor %}
   </ul>
 
   <!-- <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></p> -->
