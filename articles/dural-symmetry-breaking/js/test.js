@@ -1,0 +1,1 @@
+document.getElementById("test").innerHTML = "this is so nice";

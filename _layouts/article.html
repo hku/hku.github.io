@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+<head>
+{% include head.html %}
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+  MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "all" } }
+});
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+</head>
+
+	<body>
+
+	{% include header.html %}
+
+		<main class="page-content" aria-label="Content">
+			<div class="wrapper">
+			<article class="post">
+				<header class="post-header">
+					<h1 class="post-title">{{ page.title | escape }}</h1>
+				</header>
+
+				<div class="post-content">
+				{{ content }}
+				</div>
+			</article>
+			</div>
+		</main>
+
+	{% include footer.html %}
+	
+	</body>
+
+</html>
+
+
