@@ -26,4 +26,5 @@ defaults:
       path: "articles"
     values:
       layout: "article"
+      comments: true
       article: true
