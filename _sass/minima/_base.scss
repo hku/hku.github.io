@@ -54,10 +54,14 @@ img {
  */
 figure > img {
   display: block;
+  margin: 0 auto;
 }
 
 figcaption {
   font-size: $small-font-size;
+  text-align: center;
+  padding-left: 50px;
+  padding-right: 50px;
 }
 
 
@@ -240,4 +244,8 @@ table {
   td {
     border: 1px solid $grey-color-light;
   }
+}
+
+sub, sup {
+  font-size: 80%;
 }
