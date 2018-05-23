@@ -22,15 +22,18 @@ layout: default
     {% endfor %}
   {% endcomment %}
 
-  {% for page in site.pages %}
-    {% if page.article == true %}
-      <li>
-        <h2>
-          <a class="post-link" href="{{ page.url | relative_url }}">{{ page.title | escape }}</a>
-        </h2>
-      </li>
-    {% endif %}  
-  {% endfor %}
+
+
+    {% for page in site.pages %}
+      {% if page.article == true and page.draft == null %}
+        <li>
+          <h2>
+            <a class="post-link" href="{{ page.url | relative_url }}">{{ page.title | escape }}</a>
+          </h2>
+        </li>
+      {% endif %}
+    {% endfor %}
+
   </ul>
 
   <!-- <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></p> -->
