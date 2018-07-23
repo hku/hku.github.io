@@ -41,6 +41,8 @@ React 是一个非常灵活高效的模块化前端框架。 下面是一些Reac
 
 相信对于熟悉Threejs的开发者，这段jsx片段的含义是非常直观的。
 
+[Demo](https://hku.github.io/articles/thrones) 是用该“中间件”实现的一个更复杂的案例。
+
 ## 二、 Threejs的组件化
 
 联结 Threejs 和 React 的首要问题是怎样实现Threejs中对象的“组件化”， 前面我们提到 Threejs 中也可以通过Object3D的add方法实现简单的“组件化”结构，例如要绘制一个“行星系统”， Threejs中通常可以这样写
