@@ -100,9 +100,9 @@ export default PointLight;
 
 ## 四、 Renderer 的设计
 
-前面的组件中缺少了重要的一环，就是渲染器 renderer。 当然我们是故意为之的，因为这里有点麻烦……
+前面的组件中缺少了重要的一环，就是渲染器 renderer。 当然这是故意为之的，因为这里有点麻烦……
 
-在 Threejs 中，渲染器（Renderer）用来直接绘制 canvas，出于惯性思维，我们很自然想把 renderer 当做某种最外层的概念，包住整个Scene （毕竟我们是要渲染整个Scene嘛！）。我们知道 Threejs 中的Renderer定义依赖于scene 和 camera，而camera 和 scene相对于renderer是"内层元素"。 注意React 中对象的传递只能从父元素传向子元素，想要逆向传播的话，我们需要使用ref来进行“显示”的引用。这么表述是有点拗口，我们直接上代码，你可以体会一下，
+在 Threejs 中，渲染器（Renderer）用来直接绘制 canvas，出于惯性思维，我们很自然想把 renderer 当做某种最外层的概念，包住整个Scene （毕竟我们是要渲染整个Scene嘛！）。我们知道 Threejs 中的Renderer定义依赖于scene 和 camera，而camera 和 scene相对于renderer是"内层元素"。 注意React 中对象实体的传递只能从父元素传向子元素，想要逆向传播的话，我们需要使用ref来进行“显式”的引用。这么表述是有点拗口，我们直接上代码来体会一下，
 
 ```jsx
 
@@ -146,11 +146,121 @@ class Space extends React.Component {
 }
 ```
 
-把Renderer当做某种最外层的概念，我们很可能写出类似上面的代码，注意这里，为了是renderer能够获得的scene和camera（当然也包括canvas），我们使用ref把他们从子元素中提取出来，然后在componentDidMount阶段执行渲染操作。显然，ref的存在让代码显得非常啰嗦，封装做得很糟糕，以至于我们还要自己重写 render loop 的常规逻辑（通过 render loop不断重绘canvas，实现动画是threejs中的一个常识）
+把Renderer当做某种最外层的概念，我们很可能写出类似上面的代码，注意这里，为了使renderer能够获得的scene和camera（当然也包括canvas），我们使用ref把他们从子组件中提取出来，然后在父组件的componentDidMount阶段执行渲染操作。显然，ref的存在让代码显得非常啰嗦，封装做得很糟糕，并且我们还要自己重写 render loop 等常规逻辑（通过 render loop不断重绘canvas，实现动画是threejs中的一个常识）
 
 怎样跳出这个坑？
 
-办法很简单，
+只要打破惯性思维，办法就很简单：那就是不要把 renderer 当做外层的概念，恰恰相反，我们应该把 renderer 放到 camera的层级甚至更里面。这样scene、camera 就可以通过 React 向下的数据流自然传递给 renderer。 于是我们将上面的Scene和Camera组件分别改造为：
+
+Scene 组件
+
+```jsx
+import React from "react";
+import {Scene as ThreeScene} from "three"
+
+class Scene extends React.Component {
+	constructor(props){
+		super(props);
+		const {width, height, style} = props;
+		this.obj = new ThreeScene();
+		this.canvas = document.createElement("canvas");
+		this.canvas.width = width;
+		this.canvas.height = height;
+		this.canvas.style = style;
+	}
+	componentDidMount(){
+		const box = this.refs.container3d;
+		box.appendChild(this.canvas);
+	}
+	componentWillUnmount(){
+		const box = this.refs.container3d;
+		box.removeChild(this.canvas);
+	}
+	render(){
+		const {width, height, style} = this.props;
+		return <div ref="container3d">{this.props.children}</div>
+	}
+	getChildContext() {
+	    return {
+	    	parent: this.obj,
+	    	canvas: this.canvas
+	    };
+	}
+}
+Scene.childContextTypes = {
+  	parent: React.PropTypes.object,
+  	canvas: React.PropTypes.object
+};
+
+export default Scene
+```
+
+
+
+Camera 组件
+
+```jsx
+import {PerspectiveCamera, WebGLRenderer} from "three";
+import Object3D from "./Object3D.jsx";
+import React from "react";
+
+class Camera extends Object3D {
+	objContructor(props){
+		const {fov, aspect, near, far, x, y, z} = props;
+		const camera = new PerspectiveCamera(fov, aspect, near, far);
+		
+		camera.position.x = x;
+		camera.position.y = y;
+		camera.position.z = z;
+
+		this.frameId = null;
+		this.renderFrames = this.renderFrames.bind(this);
+		return camera;
+	}
+	objDidMount(){
+		const canvas = this.context.canvas;
+		this.scene = this.context.parent;
+		this.webGLRenderer = new WebGLRenderer({antialias: true, canvas});
+		this.renderFrames();
+	}
+	objWillUnmount(){
+		cancelAnimationFrame(this.frameId);
+	}
+	renderFrames(){
+		const camera = this.obj;
+		const scene = this.scene;
+		const webGLRenderer = this.webGLRenderer;
+				
+		webGLRenderer.render(scene, camera);
+		this.frameId = requestAnimationFrame(this.renderFrames)
+	}
+}
+
+
+Camera.childContextTypes = {
+  	parent: React.PropTypes.object
+};
+
+Camera.contextTypes = {
+	parent: React.PropTypes.object,
+	canvas: React.PropTypes.object
+};
+
+export default Camera;
+```
+
+也就是说改造以后，Scene 将 canvas 实例以 context 形式传递给子元素； 而Camera 不仅承担 Threejs中的类似作用，同时还承担了渲染画布实现render loop的作用。
+
+有了上述核心组件后，一个典型的3d场景，可以描写为以下形式：
+
+```xml
+<Scene>
+	<Camera/>
+	<PointLight/>
+	<Object3D />
+</Scene>
+```
+到目前为止，`react3d` 已通过隐式传递的方式帮我们实现了3d模型的组装、render loop、以及状态描述以及生命周期的管理。 
 
 （下一篇 [part3](../react3d_3/index.md)）
 
