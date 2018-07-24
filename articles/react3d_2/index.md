@@ -15,7 +15,7 @@ title: react3d： A thin middleware to glue Threejs and React （part 2）
 
 #### **Scene**
 
-首先是整个3d场景，Threejs 中称为 Scene。 由于 Scene 是整个场景的根元素，同时为了保持简洁性，我们希望 `react3d.Scene` 同时承载创建 canvas 的作用。由于这些特殊性，我们把 Scene 当做独立于 `react3d.Object3D` 以外的另一个基础类：
+首先是整个3d场景，Threejs 中称为 Scene。 出于两点考虑: (1) Scene 是整个场景的根元素 (2) 为了保持简洁性，我们希望 `react3d.Scene` 也承载创建 canvas 的作用。由于这些特殊性，我们把 Scene 当做独立于 `react3d.Object3D` 以外的另一个基础类：
 
 ```jsx
 import React from "react";
@@ -56,8 +56,6 @@ Scene.childContextTypes = {
 export default Scene
 ```
 
-这步是比较容易的。
-
 
 #### **Camera**
 
@@ -78,9 +76,81 @@ class Camera extends Object3D {
 export default Camera;
 ```
 
+#### **Light**
+
+渲染3d场景的另一个重要概念是灯光，我们以 PointLight 为例，显然它也可以直接继承`react3d.Ojbect3D`:
+
+```jsx
+import Object3D from "Object3D.jsx";
+import {PointLight as ThreePointLight} from "three";
+
+class PointLight extends Object3D {
+	objContructor(props){
+		const {color, intensity, distance, decay, x, y, z} = props;
+		const light = new ThreePointLight( color, intensity, distance, decay);
+		light.position.set( x, y, z);
+		return light;
+	}
+}
+export default PointLight;
+```
+
+我们可以顺着这个思路，定义其他常见的3d组件，例如 Box，Sphere 等。 so far, so good!
 
 
+## 四、 Renderer 的设计
 
+前面的组件中缺少了重要的一环，就是渲染器 renderer。 当然我们是故意为之的，因为这里有点麻烦……
+
+在 Threejs 中，渲染器（Renderer）用来直接绘制 canvas，出于惯性思维，我们很自然想把 renderer 当做某种最外层的概念，包住整个Scene （毕竟我们是要渲染整个Scene嘛！）。我们知道 Threejs 中的Renderer定义依赖于scene 和 camera，而camera 和 scene相对于renderer是"内层元素"。 注意React 中对象的传递只能从父元素传向子元素，想要逆向传播的话，我们需要使用ref来进行“显示”的引用。这么表述是有点拗口，我们直接上代码，你可以体会一下，
+
+```jsx
+
+import React from "react"
+
+import {WebGLRenderer} from "three"
+
+import Scene from "Scene.jsx"
+import Camera from "Camera.jsx"
+
+class Space extends React.Component {
+	constructor(props){
+		super(props)
+		this.frameId = null
+		this.renderFrames = this.renderFrames.bind(this)
+	}
+	renderFrames(){
+		const scene = this.scene;
+		const camera = this.camera;
+		const webGLRenderer = this.webGLRenderer;
+		webGLRenderer.render(scene, camera);
+		this.frameId = requestAnimationFrame(this.renderFrames)
+	}
+
+	componentDidMount(){
+		this.webGLRenderer = new WebGLRenderer({antialias: true, canvas: this.canvas});
+		this.renderFrames();
+	}
+
+	componentWillUnmount(){
+		cancelAnimationFrame(this.frameId);
+	}
+
+	render(){
+		const {width, height} = this.props
+		return <Scene ref={ref => { if(ref){this.scene = ref.obj; this.canvas = ref.refs.canvas;} }} 
+			width={width} height={height} style={{display:"block", margin: 0}}>
+				<Camera ref={ref => { if(ref){this.camera = ref.obj} }} fov={80} aspect={width/height} near={0.5} far={250} z={150}/>
+			</Scene>
+	}
+}
+```
+
+把Renderer当做某种最外层的概念，我们很可能写出类似上面的代码，注意这里，为了是renderer能够获得的scene和camera（当然也包括canvas），我们使用ref把他们从子元素中提取出来，然后在componentDidMount阶段执行渲染操作。显然，ref的存在让代码显得非常啰嗦，封装做得很糟糕，以至于我们还要自己重写 render loop 的常规逻辑（通过 render loop不断重绘canvas，实现动画是threejs中的一个常识）
+
+怎样跳出这个坑？
+
+办法很简单，
 
 （下一篇 [part3](../react3d_3/index.md)）
 
