@@ -50,7 +50,64 @@ React 是一个非常灵活高效的模块化前端框架。 下面是一些Reac
 
 但是这种 “组件化” 和 React的组件不是一个体系，即无法像jsx那样用xml声明的形式更加直观地描述组件之间的嵌套与参数依赖关系，同时threejs的“组件”也缺少对其状态的描述和对其生命周期的管理，例如我们希望当某个3d模型被创建时，该模型可以被自动add进来，当不需要该模型时，我们希望该模型可以“自动”被remove掉。 这些在React 组件中是可以轻易实现的，因此我们首先构造一个 Three.Object3D 在React中的“代理”组件，它有一个obj属性，对应其被代理的Threejs.Object3D 实例。当该组件被“创建时” (component­Did­Mount)，其被代理的obj 立刻被add 到其父组件代理的obj，同样当该组件被“销毁”时，该组件代理的obj自动从父组件代理的obj中被remove掉，具体代码如下：
 
-![code](img/code2.png)
+```jsx
+import React from "react";
+import {Object3D as ThreeObject3D} from "three"
+
+class Object3D extends React.Component {
+	constructor(props) {
+		super(props);
+		this.obj = this.objContructor(props);
+		
+	}
+	componentWillReceiveProps(nextProps) {
+		this.objWillReceiveProps(nextProps);
+	}
+	componentDidMount(){
+		const parent = this.context.parent;
+		parent.add(this.obj);
+		this.objDidMount();
+	}
+	componentWillUnmount(){
+		const parent = this.context.parent;
+		parent.remove(this.obj);
+		this.objWillUnmount();
+	}
+	render(){
+		return <span>{this.props.children}</span>;
+	}
+	getChildContext() {
+	    return {
+	    	parent: this.obj
+	    };
+	}
+
+	objContructor(props) {
+		const obj = new ThreeObject3D();
+		return obj
+	}
+	objWillReceiveProps(nextProps){}
+	objDidMount(){
+	}
+	objWillUnmount(){}
+}
+
+Object3D.setTypes = (obj, opt) => {
+	opt = opt || {};
+	if(opt.hasChild) {
+		obj.childContextTypes = {
+  			parent: React.PropTypes.object
+		};
+	}
+	obj.contextTypes = {parent: React.PropTypes.object};
+}
+
+
+Object3D.setTypes(Object3D, {hasChild: true});
+
+
+export default Object3D;
+```
 
 
 以后当我们需要创建一个3D对象的时候，我们只需要继承这个基础类，例如：
