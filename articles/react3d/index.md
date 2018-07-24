@@ -112,12 +112,35 @@ export default Object3D;
 
 以后当我们需要创建一个3D对象的时候，我们只需要继承这个基础类，例如：
 
+```jsx
+import {Object3D} from "react3d.jsx";
+import {BoxGeometry, MeshBasicMaterial, Mesh} from "three"
 
-![code](img/code3.png)
+const createCube = () => {
+		const geometry = new BoxGeometry( 15, 15, 15 );
+		var material = new MeshBasicMaterial( {color: 0xffffff, wireframe: true};
+		var cube = new Mesh( geometry, material );
+		cube.name = "cube";
+	return cube;
+}
+
+class Cube extends Object3D {
+	objContructor(props) {
+		this.id = "cube";
+		return createCube();
+	}
+};
+
+Object3D.setTypes(Cube, {hasChild: true});
+
+export default Cube;
+```
 
 注意：这里我们创造Cube对象时，没有重新创造 material 或者 geometry 对应的React 组件，因为material 和geometry 是描述 Object3D 的，自身并没有模块化特征，因此没有必要为了“React化” 而 “React 化”。 相反，这里认为，直接在 objContructor方法内用js代码的方式创建 obj 是自然的，因为这样最大程度上保留了threejs开发者以前的代码习惯（只在需要的时候才“React化”），threejs开发者可以像以前一样在这个方法内专注于3d模型的定义。
 
-（未完，part2 将讨论 render loop 应该放在哪里最恰当，part3 讨论动画和交互用怎样的方式添加才最恰当，js库整理好以后会一并放上来供大家使用）
+
+
+（下一篇 [part2](../react3d_2/index.md)）
 
 
 
