@@ -1,10 +1,10 @@
 ---
-title: A Lightweight Solution to Integrate Threejs with React （part 1）
+react3d: A thin middleware to glue Threejs and React （part 1）
 ---
 
 ## 一、 背景简介
 
-#### Threejs
+#### **Threejs**
 
 Threejs 是一个非常流行 Javascript 3d 引擎，我们可以在[Threejs官网](https://threejs.org/)找到非常多酷炫的3d案例。 对于开发者而言，Threejs 对 webGL 优雅的封装让我们可以用面向对象的思路进行3d建模。 其特点可以概括为：
 
@@ -12,7 +12,7 @@ Threejs 是一个非常流行 Javascript 3d 引擎，我们可以在[Threejs官�
 2. Threejs 中的3d模型具有简单的“组件化” 结构（类似sketchup中的group），通过其基础类 Object3D 的 add 方法来实现 
 
 
-#### React
+#### **React**
 
 React 是一个非常灵活高效的模块化前端框架。 下面是一些React的主要特点：
 
@@ -23,7 +23,7 @@ React 是一个非常灵活高效的模块化前端框架。 下面是一些Reac
 这些特点对于组织复杂应用都是非常重要的。
 
 
-#### “中间件”
+#### **中间件**
 
 对于复杂的3d应用场景，我们一方面需要Threejs专业的3d绘制能力，同时我们也需要React普适的模块组织能力，尤其是当canvas 3d场景和其他DOM元素有耦合关系的时候。
 
@@ -31,7 +31,7 @@ React 是一个非常灵活高效的模块化前端框架。 下面是一些Reac
 
 本文将试图创造一个js “中间件”，用来连接 Threejs 和 React。 由于 Threejs 和 React 作为“重型”js库，各自已有足够多的“轮子”和“锁链”，我们希望这个“中间件” 是轻量的，即我们希望这个“中间件”对原有框架的底层和使用习惯不做任何改变，同时也尽量避免重复造轮子，因为我们希望使用这个“中间件”时，不会引入其他的复杂性或学习成本。
 
-这里先预览一下采用“中间件”实现的一个最终demo：
+这里先预览一下采用“中间件”实现的一个简单 demo：
 
 ![preview](img/preview.gif)
 
