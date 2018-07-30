@@ -1,5 +1,5 @@
 ---
-title: react3d： A thin middleware to glue Threejs and React （part 2）
+title: react3d： A thin middleware to glue Threejs and React （part 3）
 ---
 （上一篇 [part2](../react3d_2/index.md)）
 
