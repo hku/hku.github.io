@@ -973,10 +973,10 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  66808: () => { window._answer = ""; window._yum_global.setAnswer(""); window._yum_global.setBusy(true); },  
- 66901: ($0) => { window._answer = window._answer + UTF8ToString($0); var _answer = window._answer; window._yum_global.setAnswer(_answer); },  
- 67026: ($0) => { var _answer = window._answer; window._yum_global.botReply(_answer); window._answer = ""; window._yum_global.setAnswer(""); window._yum_global.setBusy(false); console.log("global i: " + $0); },  
- 67220: () => { window._yum_global.setLoaded(true); }
+  66872: () => { window._answer = ""; window._yum_global.setAnswer(""); window._yum_global.setBusy(true); },  
+ 66965: ($0) => { window._answer = window._answer + UTF8ToString($0); var _answer = window._answer; window._yum_global.setAnswer(_answer); },  
+ 67090: ($0) => { var _answer = window._answer; window._yum_global.botReply(_answer); window._answer = ""; window._yum_global.setAnswer(""); window._yum_global.setBusy(false); window._yum_global.setLog && window._yum_global.setLog(UTF8ToString($0)); },  
+ 67326: () => { window._yum_global.setLoaded(true); }
 };
 
 
@@ -4010,6 +4010,29 @@ var ASM_CONSTS = {
   ;
   }
 
+  
+  
+  
+  function __munmap_js(addr,len,prot,flags,fd,offset_low, offset_high) {
+    var offset = convertI32PairToI53Checked(offset_low, offset_high);;
+  
+    
+  try {
+  
+      if (isNaN(offset)) return 61;
+      var stream = SYSCALLS.getStreamFromFD(fd);
+      if (prot & 2) {
+        SYSCALLS.doMsync(addr, stream, len, flags, offset);
+      }
+      FS.munmap(stream);
+      // implicitly return 0
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  ;
+  }
+
   var readEmAsmArgsArray = [];
   var readEmAsmArgs = (sigPtr, buf) => {
       // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
@@ -4901,6 +4924,7 @@ var wasmImports = {
   __syscall_openat: ___syscall_openat,
   _emscripten_get_now_is_monotonic: __emscripten_get_now_is_monotonic,
   _mmap_js: __mmap_js,
+  _munmap_js: __munmap_js,
   emscripten_asm_const_int: _emscripten_asm_const_int,
   emscripten_date_now: _emscripten_date_now,
   emscripten_get_now: _emscripten_get_now,
@@ -4918,6 +4942,7 @@ var asm = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
 var _free = createExportWrapper('free');
 var _malloc = createExportWrapper('malloc');
+var _cleanup = Module['_cleanup'] = createExportWrapper('cleanup');
 var _chat = Module['_chat'] = createExportWrapper('chat');
 var _init = Module['_init'] = createExportWrapper('init');
 var ___errno_location = createExportWrapper('__errno_location');
