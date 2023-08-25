@@ -4,6 +4,18 @@ title: notes on pytorch
 
 ### basic concepts:
 
+model (nn.Module的子类) 的参数保存在
+`model.state_dict()`, 这个 OrderedDict 是该model参数的name-value dict
+`model.state_dict().keys()` 可以查看所有参数的名称
+
+`torch.save(model.state_dict(), "model.pth")` 将该model的参数dict 保存到文件中
+
+我们可以通过 `d = torch.load("model.pth")` 来加载查看这个dict中的name和value, 原则上，我们修改这个dict中的name 和 value
+
+`model.load_state_dict(d, strict=False)` 将dict d 保存的值 按照name关系，赋值给 model 相应的参数
+
+
+```
 class CustomDataset(Dataset):
   def __getitem__(self, idx)
 
@@ -26,6 +38,9 @@ optimizer.step()
 
 torch.save(model.state_dict(), "model.pth")
 model.load_state_dict(torch.load("model.pth"))
+
+```
+
 
 ### grad API
 
